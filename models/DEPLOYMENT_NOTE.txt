@@ -1,0 +1,15 @@
+FINAL DEPLOYMENT CONFIGURATION
+
+The saved deployment model is the 15-feature Random Forest:
+phishing_detector.joblib
+
+The exact feature order is stored in:
+selected_features.joblib
+
+The live Flask application uses ONLY these 15 features.
+The 18-feature experiment in the notebook is not used by Flask.
+
+Do not retrain the model just to start Flask. Start the app with:
+python app.py
+
+Before changing the model feature set, update the model and selected_features together and retest the extractor.

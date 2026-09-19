@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Phishing Website Detection</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <main class="container">
+
+        <section class="header">
+            <div class="icon">🛡️</div>
+
+            <h1>Phishing Website Detection System</h1>
+
+            <p>
+                Machine Learning-Based Website Classification
+            </p>
+        </section>
+
+
+        <section class="card">
+
+            <h2>Check a Website</h2>
+
+            <p class="description">
+                Enter a website URL to determine whether it is likely
+                to be legitimate or phishing.
+            </p>
+
+            <form method="POST">
+
+                <input
+                    type="text"
+                    name="url"
+                    value="{{ submitted_url }}"
+                    placeholder="https://example.com"
+                    required
+                >
+
+                <button type="submit">
+                    Analyze URL
+                </button>
+
+            </form>
+
+
+            {% if error %}
+
+                <div class="error">
+                    {{ error }}
+                </div>
+
+            {% endif %}
+
+
+            {% if result %}
+
+                <div class="result
+                    {% if result == 'Phishing Website' %}
+                        phishing
+                    {% else %}
+                        legitimate
+                    {% endif %}
+                ">
+
+                    <h2>{{ result }}</h2>
+
+                    <p>
+                        Confidence:
+                        <strong>{{ confidence }}%</strong>
+                    </p>
+
+                    <div class="progress">
+                        <div
+                            class="progress-bar"
+                            style="width: {{ confidence }}%;">
+                        </div>
+                    </div>
+
+                    {% if result == "Phishing Website" %}
+
+                        <p class="message">
+                            Warning: this URL shows characteristics
+                            associated with phishing websites.
+                        </p>
+
+                    {% else %}
+
+                        <p class="message">
+                            Based on the machine learning prediction,
+                            this URL appears to be legitimate.
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+
+        <footer>
+            Machine Learning-Based Phishing Website Detection System
+        </footer>
+
+    </main>
+
+</body>
+</html>

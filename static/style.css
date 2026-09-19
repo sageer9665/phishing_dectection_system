@@ -1,0 +1,178 @@
+/* ==========================================
+   MAIN PAGE
+   ========================================== */
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f7fb;
+    color: #172033;
+}
+
+
+/* ==========================================
+   CONTAINER
+   ========================================== */
+
+.container {
+    width: 90%;
+    max-width: 720px;
+    margin: 60px auto;
+}
+
+
+/* ==========================================
+   HEADER
+   ========================================== */
+
+.header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.icon {
+    font-size: 38px;
+}
+
+.header h1 {
+    margin: 10px 0 6px;
+    font-size: 28px;
+}
+
+.header p {
+    margin: 0;
+    color: #667085;
+}
+
+
+/* ==========================================
+   MAIN CARD
+   ========================================== */
+
+.card {
+    background: white;
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.card h2 {
+    margin-top: 0;
+}
+
+.description {
+    color: #667085;
+    margin-bottom: 22px;
+}
+
+
+/* ==========================================
+   FORM
+   ========================================== */
+
+form {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 13px 15px;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+button {
+    padding: 13px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #1f4e79;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+
+/* ==========================================
+   RESULTS
+   ========================================== */
+
+.result {
+    margin-top: 25px;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.legitimate {
+    background: #eef8f1;
+    border: 1px solid #b7dec1;
+}
+
+.phishing {
+    background: #fff1f0;
+    border: 1px solid #efb4b0;
+}
+
+
+/* ==========================================
+   CONFIDENCE
+   ========================================== */
+
+.progress {
+    height: 10px;
+    background: #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #1f4e79;
+}
+
+
+/* ==========================================
+   ERROR
+   ========================================== */
+
+.error {
+    margin-top: 15px;
+    padding: 12px;
+    background: #fff1f0;
+    color: #b42318;
+    border-radius: 8px;
+}
+
+
+/* ==========================================
+   FOOTER
+   ========================================== */
+
+footer {
+    text-align: center;
+    margin-top: 25px;
+    color: #667085;
+    font-size: 13px;
+}
+
+
+/* ==========================================
+   MOBILE
+   ========================================== */
+
+@media (max-width: 600px) {
+
+    form {
+        flex-direction: column;
+    }
+
+    button {
+        width: 100%;
+    }
+
+    .card {
+        padding: 22px;
+    }
+
+}
