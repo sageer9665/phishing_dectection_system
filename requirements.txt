@@ -6,3 +6,4 @@ flask
 joblib
 requests
 beautifulsoup4
+gunicorn
