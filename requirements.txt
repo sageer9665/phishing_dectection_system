@@ -6,4 +6,3 @@ flask
 joblib
 requests
 beautifulsoup4
-& "C:\Users\USER\AppData\Local\Programs\Python\Python313\python.exe" app.py
