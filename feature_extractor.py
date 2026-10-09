@@ -1,7 +1,3 @@
-# ==========================================
-# PHISHING WEBSITE FEATURE EXTRACTOR
-# Final deployment: 15 features
-# ==========================================
 
 import ipaddress
 from urllib.parse import urlparse, urljoin
@@ -10,219 +6,395 @@ import requests
 from bs4 import BeautifulSoup
 
 
-SHORTENER_DOMAINS = {
-    "bit.ly", "goo.gl", "shorte.st", "go2l.ink", "x.co", "ow.ly",
-    "t.co", "tinyurl.com", "tr.im", "is.gd", "tiny.cc", "lnkd.in",
-    "adf.ly", "cutt.us", "cutt.ly", "v.gd", "po.st", "j.mp"
+# Common URL-shortening services
+SHORTENER_DOMAINS = {      
+    "bit.ly",
+    "tinyurl.com",
+    "t.co",
+    "goo.gl",
+    "ow.ly",
+    "is.gd",
+    "buff.ly",
+    "cutt.ly",
+    "rebrand.ly",
+    "shorturl.at",
+    "tiny.cc",
+    "v.gd",
+    "lnkd.in"
 }
 
 
+def same_site(host1, host2):
+    # Treat a domain and its subdomains as the same website
+    if not host1 or not host2:
+        return False
+
+    host1 = host1.lower().strip(".")
+    host2 = host2.lower().strip(".")
+
+    return (
+        host1 == host2
+        or host1.endswith("." + host2)
+        or host2.endswith("." + host1)
+    )
+
+
+def normalize_url(url):
+    # Add HTTPS when the user enters a URL without a scheme
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
+
+    return url
+
+
 def extract_features(url):
-    """Extract the same 15 features expected by the saved model."""
+    # Normalize the URL
+    url = normalize_url(url)
 
-    raw_url = url.strip()
+    # Break the URL into separate components
+    parsed = urlparse(url)
 
-    # Add a scheme only for parsing/requesting a URL that has none.
-    request_url = raw_url
-    if not request_url.startswith(("http://", "https://")):
-        request_url = "http://" + request_url
-
-    parsed = urlparse(request_url)
     hostname = parsed.hostname or ""
     hostname_lower = hostname.lower()
+    scheme = parsed.scheme.lower()
 
     features = {}
 
+    # ==========================================
     # 1. UsingIP
+    # ==========================================
+
     try:
         ipaddress.ip_address(hostname)
         features["UsingIP"] = -1
     except ValueError:
         features["UsingIP"] = 1
 
+    # ==========================================
     # 2. LongURL
-    length = len(raw_url)
-    if length < 54:
+    # ==========================================
+
+    if len(url) < 54:
         features["LongURL"] = 1
-    elif length <= 75:
+    elif len(url) <= 75:
         features["LongURL"] = 0
     else:
         features["LongURL"] = -1
 
+    # ==========================================
     # 3. ShortURL
-    features["ShortURL"] = -1 if any(
-        domain in raw_url.lower() for domain in SHORTENER_DOMAINS
-    ) else 1
+    # ==========================================
 
+    if hostname_lower in SHORTENER_DOMAINS:
+        features["ShortURL"] = -1
+    else:
+        features["ShortURL"] = 1
+
+    # ==========================================
     # 4. Symbol@
-    features["Symbol@"] = -1 if "@" in raw_url else 1
+    # ==========================================
 
+    features["Symbol@"] = -1 if "@" in url else 1
+
+    # ==========================================
     # 5. Redirecting//
-    features["Redirecting//"] = -1 if raw_url.rfind("//") > 6 else 1
+    # ==========================================
 
+    # Ignore the "//" belonging to http:// or https://
+    features["Redirecting//"] = -1 if url.find("//", 8) != -1 else 1
+
+    # ==========================================
     # 6. PrefixSuffix-
+    # ==========================================
+
     features["PrefixSuffix-"] = -1 if "-" in hostname else 1
 
+    # ==========================================
     # 7. SubDomains
-    # This follows the common dataset rule based on dots in the URL.
-    dot_count = raw_url.count(".")
-    if dot_count == 1:
+    # ==========================================
+
+    # Count the components in the hostname
+    hostname_parts = hostname.split(".")
+
+    if len(hostname_parts) <= 2:
         features["SubDomains"] = 1
-    elif dot_count == 2:
+    elif len(hostname_parts) == 3:
         features["SubDomains"] = 0
     else:
         features["SubDomains"] = -1
 
+    # ==========================================
     # 8. HTTPS
-    # Do not add HTTPS before calculating this feature.
-    features["HTTPS"] = 1 if raw_url.lower().startswith("https://") else -1
+    # ==========================================
 
+    features["HTTPS"] = 1 if scheme == "https" else -1
+
+    # ==========================================
     # 9. NonStdPort
+    # ==========================================
+
     try:
-        features["NonStdPort"] = -1 if parsed.port is not None else 1
+        port = parsed.port
+
+        if port is None or port in (80, 443):
+            features["NonStdPort"] = 1
+        else:
+            features["NonStdPort"] = -1
+
     except ValueError:
         features["NonStdPort"] = -1
 
+    # ==========================================
     # 10. HTTPSDomainURL
-    features["HTTPSDomainURL"] = -1 if "https" in hostname_lower else 1
+    # ==========================================
 
-    # Fetch the page for the HTML-based features.
+    # Check whether "https" appears suspiciously inside the hostname
+    features["HTTPSDomainURL"] = (
+        -1 if "https" in hostname_lower else 1
+    )
+
+    # ==========================================
+    # Retrieve the webpage
+    # ==========================================
+
     response = None
     soup = None
 
-    request_candidates = [request_url]
-    if not raw_url.lower().startswith(("http://", "https://")):
-        request_candidates.append("https://" + raw_url)
+    try:
+        response = requests.get(
+            url,
+            timeout=5,
+            headers={
+                "User-Agent": "Mozilla/5.0"
+            }
+        )
 
-    for candidate in request_candidates:
-        try:
-            response = requests.get(
-                candidate,
-                timeout=5,
-                headers={"User-Agent": "Mozilla/5.0"},
-                allow_redirects=True
-            )
-            soup = BeautifulSoup(response.text, "html.parser")
-            break
-        except requests.RequestException:
-            continue
+        soup = BeautifulSoup(
+            response.text,
+            "html.parser"
+        )
 
-    # When the page cannot be retrieved, use the dataset's suspicious/error
-    # fallback for the HTML-dependent features rather than inventing values.
+    except requests.RequestException:
+        pass
+
+    # ==========================================
+    # 11. Favicon
+    # ==========================================
+
     if soup is None:
         features["Favicon"] = -1
-        features["RequestURL"] = -1
-        features["AnchorURL"] = -1
-        features["ServerFormHandler"] = -1
-        features["IframeRedirection"] = -1
-        return features
+    else:
+        favicon_found = False
 
-    base_url = response.url
-    base_hostname = urlparse(base_url).hostname or hostname
+        for link in soup.find_all("link", href=True):
+            rel = link.get("rel", [])
 
-    # 11. Favicon
-    favicon_value = -1
-    for link in soup.find_all("link", href=True):
-        rel = " ".join(link.get("rel", [])).lower()
-        href = link.get("href", "")
+            if any("icon" in str(item).lower() for item in rel):
+                favicon_url = urljoin(url, link["href"])
+                favicon_host = urlparse(favicon_url).hostname
 
-        if "icon" in rel:
-            icon_url = urljoin(base_url, href)
-            icon_host = urlparse(icon_url).hostname
+                if same_site(favicon_host, hostname):
+                    favicon_found = True
+                    break
 
-            if icon_host == base_hostname or href.count(".") == 1:
-                favicon_value = 1
-                break
+        features["Favicon"] = 1 if favicon_found else -1
 
-    features["Favicon"] = favicon_value
-
+    # ==========================================
     # 12. RequestURL
-    resources = []
-    for tag_name, attribute in [
-        ("img", "src"),
-        ("audio", "src"),
-        ("embed", "src"),
-        ("iframe", "src")
-    ]:
-        for element in soup.find_all(tag_name, **{attribute: True}):
-            resources.append(element.get(attribute))
+    # ==========================================
 
-    if not resources:
-        features["RequestURL"] = 0
+    if soup is None:
+        features["RequestURL"] = -1
     else:
-        success = 0
+        resources = []
 
-        for resource in resources:
-            resource_url = urljoin(base_url, resource)
-            resource_host = urlparse(resource_url).hostname
-            dots = resource.count(".")
+        for tag_name, attribute in [
+            ("img", "src"),
+            ("audio", "src"),
+            ("embed", "src"),
+            ("iframe", "src")
+        ]:
+            for element in soup.find_all(tag_name):
+                value = element.get(attribute)
 
-            if (
-                (resource_host and resource_host == base_hostname)
-                or dots == 1
-            ):
-                success += 1
+                if value:
+                    resources.append(value)
 
-        percentage = (success / len(resources)) * 100
-
-        if percentage < 22:
+        if not resources:
             features["RequestURL"] = 1
-        elif percentage < 61:
-            features["RequestURL"] = 0
         else:
-            features["RequestURL"] = -1
+            external_count = 0
 
+            for resource in resources:
+                resource_url = urljoin(url, resource)
+                resource_host = urlparse(resource_url).hostname
+
+                if resource_host and not same_site(resource_host, hostname):
+                    external_count += 1
+
+            external_percentage = (
+                external_count / len(resources)
+            ) * 100
+
+            if external_percentage < 22:
+                features["RequestURL"] = 1
+            elif external_percentage <= 61:
+                features["RequestURL"] = 0
+            else:
+                features["RequestURL"] = -1
+
+    # ==========================================
     # 13. AnchorURL
-    anchors = soup.find_all("a", href=True)
+    # ==========================================
 
-    if not anchors:
+    if soup is None:
         features["AnchorURL"] = -1
     else:
-        unsafe = 0
+        anchors = soup.find_all("a", href=True)
 
-        for anchor in anchors:
-            href = anchor.get("href", "")
-
-            if (
-                "#" in href
-                or "javascript" in href.lower()
-                or "mailto" in href.lower()
-                or base_hostname not in href
-            ):
-                unsafe += 1
-
-        percentage = (unsafe / len(anchors)) * 100
-
-        if percentage < 31:
+        if not anchors:
             features["AnchorURL"] = 1
-        elif percentage < 67:
-            features["AnchorURL"] = 0
         else:
-            features["AnchorURL"] = -1
+            unsafe_count = 0
 
+            for anchor in anchors:
+                href = anchor.get("href", "").strip().lower()
+
+                if (
+                    href.startswith("javascript:")
+                    or href.startswith("mailto:")
+                    or href == "#"
+                ):
+                    unsafe_count += 1
+                    continue
+
+                anchor_url = urljoin(url, href)
+                anchor_host = urlparse(anchor_url).hostname
+
+                if anchor_host and not same_site(anchor_host, hostname):
+                    unsafe_count += 1
+
+            unsafe_percentage = (
+                unsafe_count / len(anchors)
+            ) * 100
+
+            if unsafe_percentage < 31:
+                features["AnchorURL"] = 1
+            elif unsafe_percentage <= 67:
+                features["AnchorURL"] = 0
+            else:
+                features["AnchorURL"] = -1
+
+    # ==========================================
     # 14. ServerFormHandler
-    forms = soup.find_all("form", action=True)
+    # ==========================================
 
-    if not forms:
-        features["ServerFormHandler"] = 1
+    if soup is None:
+        features["ServerFormHandler"] = -1
     else:
-        form_value = 1
+        forms = soup.find_all("form")
 
-        for form in forms:
-            action = form.get("action", "")
+        if not forms:
+            features["ServerFormHandler"] = 1
+        else:
+            form_result = 1
 
-            if action == "" or action.lower() == "about:blank":
-                form_value = -1
-                break
+            for form in forms:
+                action = form.get("action", "").strip()
 
-            if base_hostname not in action and base_url not in action:
-                form_value = 0
+                if action == "" or action.lower() == "about:blank":
+                    form_result = -1
+                    break
 
-        features["ServerFormHandler"] = form_value
+                action_url = urljoin(url, action)
+                action_host = urlparse(action_url).hostname
 
+                if action_host and not same_site(action_host, hostname):
+                    form_result = 0
+
+            features["ServerFormHandler"] = form_result
+
+    # ==========================================
     # 15. IframeRedirection
-    features["IframeRedirection"] = (
-        1 if soup.find("iframe") or soup.find("frame") else -1
-    )
+    # ==========================================
+
+    if soup is None:
+        features["IframeRedirection"] = -1
+    else:
+        iframe = soup.find("iframe")
+        frame = soup.find("frame")
+
+        features["IframeRedirection"] = (
+            -1 if iframe is None and frame is None else 1
+        )
+
+    # ==========================================
+    # 16. WebsiteForwarding
+    # ==========================================
+
+    if response is None:
+        features["WebsiteForwarding"] = -1
+    else:
+        # Check whether the request ended on a different URL
+        if response.url.rstrip("/") == url.rstrip("/"):
+            features["WebsiteForwarding"] = 1
+        else:
+            features["WebsiteForwarding"] = -1
+
+    # ==========================================
+    # 17. InfoEmail
+    # ==========================================
+
+    if soup is None:
+        features["InfoEmail"] = -1
+    else:
+        page_text = soup.get_text(" ", strip=True).lower()
+
+        email_links = soup.find_all(
+            "a",
+            href=True
+        )
+
+        has_mailto = any(
+            link.get("href", "").lower().startswith("mailto:")
+            for link in email_links
+        )
+
+        has_email_text = "email" in page_text
+
+        features["InfoEmail"] = (
+            1 if has_mailto or has_email_text else -1
+        )
+
+    # ==========================================
+    # 18. LinksInScriptTags
+    # ==========================================
+
+    if soup is None:
+        features["LinksInScriptTags"] = -1
+    else:
+        scripts = soup.find_all("script")
+
+        if not scripts:
+            features["LinksInScriptTags"] = 1
+        else:
+            external_script_count = 0
+
+            for script in scripts:
+                script_src = script.get("src")
+
+                if script_src:
+                    script_url = urljoin(url, script_src)
+                    script_host = urlparse(script_url).hostname
+
+                    if script_host and not same_site(script_host, hostname):
+                        external_script_count += 1
+
+            if external_script_count == 0:
+                features["LinksInScriptTags"] = 1
+            elif external_script_count < len(scripts):
+                features["LinksInScriptTags"] = 0
+            else:
+                features["LinksInScriptTags"] = -1
 
     return features

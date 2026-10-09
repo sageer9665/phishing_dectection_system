@@ -1,23 +1,23 @@
+
 /* ==========================================
-   MAIN PAGE
+   PAGE AND GENERAL STYLES
    ========================================== */
+
+* {
+    box-sizing: border-box;
+}
 
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f4f7fb;
-    color: #172033;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f3f6fa;
+    color: #1b2838;
+    line-height: 1.6;
 }
 
-
-/* ==========================================
-   CONTAINER
-   ========================================== */
-
-.container {
-    width: 90%;
-    max-width: 720px;
-    margin: 60px auto;
+.page-shell {
+    width: min(100% - 32px, 920px);
+    margin: 0 auto;
 }
 
 
@@ -25,123 +25,455 @@ body {
    HEADER
    ========================================== */
 
-.header {
-    text-align: center;
-    margin-bottom: 28px;
+.site-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 34px 0 28px;
+    text-align: left;
 }
 
-.icon {
-    font-size: 38px;
+.brand-icon {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    background: #173b63;
+    color: #ffffff;
+    font-size: 23px;
+    font-weight: 800;
 }
 
-.header h1 {
-    margin: 10px 0 6px;
-    font-size: 28px;
-}
-
-.header p {
+.site-header h1 {
     margin: 0;
-    color: #667085;
+    font-size: clamp(20px, 3vw, 27px);
+    line-height: 1.3;
+    letter-spacing: -0.5px;
+}
+
+.site-header p {
+    margin: 5px 0 0;
+    color: #6a7788;
+    font-size: 14px;
 }
 
 
 /* ==========================================
-   MAIN CARD
+   PANELS
    ========================================== */
 
-.card {
-    background: white;
-    padding: 32px;
+.main-content {
+    margin-bottom: 30px;
+}
+
+.panel {
+    padding: clamp(22px, 4vw, 34px);
+    background: #ffffff;
+    border: 1px solid #e4e9f0;
     border-radius: 16px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 28px rgba(23, 42, 69, 0.05);
 }
 
-.card h2 {
-    margin-top: 0;
+.section-heading {
+    margin-bottom: 25px;
 }
 
-.description {
-    color: #667085;
-    margin-bottom: 22px;
+.eyebrow {
+    color: #54708f;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.3px;
+}
+
+.section-heading h2,
+.findings-heading h3 {
+    margin: 5px 0 4px;
+    color: #172b45;
+}
+
+.section-heading p,
+.findings-heading p {
+    margin: 0;
+    color: #6b7788;
+    font-size: 14px;
 }
 
 
 /* ==========================================
-   FORM
+   URL INPUT FORM
    ========================================== */
 
-form {
+form label {
+    display: block;
+    margin-bottom: 8px;
+    color: #35445a;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.url-input-row {
     display: flex;
     gap: 10px;
 }
 
-input {
+.url-input-row input {
+    min-width: 0;
     flex: 1;
     padding: 13px 15px;
-    border: 1px solid #d0d5dd;
-    border-radius: 8px;
-    font-size: 15px;
+    border: 1px solid #d5dde8;
+    border-radius: 9px;
+    outline: none;
+    background: #ffffff;
+    color: #1b2838;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-button {
-    padding: 13px 20px;
-    border: none;
+.url-input-row input:focus {
+    border-color: #356b9b;
+    box-shadow: 0 0 0 3px rgba(53, 107, 155, 0.12);
+}
+
+.primary-button,
+.secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 19px;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.primary-button {
+    border: 1px solid #173b63;
+    background: #173b63;
+    color: #ffffff;
+}
+
+.primary-button:hover {
+    background: #24517e;
+}
+
+.error-message {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 1px solid #efc5c5;
     border-radius: 8px;
-    background: #1f4e79;
-    color: white;
-    font-weight: bold;
+    background: #fff4f4;
+    color: #a52828;
+    font-size: 14px;
+}
+
+
+/* ==========================================
+   RESULT HEADER
+   ========================================== */
+
+.result-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.result-status {
+    padding: 5px 10px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.status-phishing {
+    background: #fff0ed;
+    color: #a73527;
+}
+
+.status-legitimate {
+    background: #eaf6ee;
+    color: #237442;
+}
+
+.result-heading {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 22px;
+}
+
+.result-symbol {
+    display: grid;
+    place-items: center;
+    width: 49px;
+    height: 49px;
+    flex-shrink: 0;
+    border-radius: 13px;
+    font-size: 27px;
+    font-weight: 800;
+}
+
+.phishing-heading .result-symbol {
+    background: #fff0ed;
+    color: #b9382b;
+}
+
+.legitimate-heading .result-symbol {
+    background: #eaf6ee;
+    color: #237442;
+}
+
+.result-heading h2 {
+    margin: 0;
+    font-size: clamp(22px, 4vw, 28px);
+    line-height: 1.3;
+}
+
+.result-heading p {
+    margin: 5px 0 0;
+    color: #6b7788;
+    font-size: 14px;
+}
+
+
+/* ==========================================
+   CONFIDENCE BAR
+   ========================================== */
+
+.confidence-section {
+    margin-top: 28px;
+    padding: 20px;
+    border: 1px solid #e7ecf2;
+    border-radius: 12px;
+    background: #fafbfd;
+}
+
+.confidence-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 11px;
+    font-size: 14px;
+}
+
+.confidence-label strong {
+    color: #173b63;
+    font-size: 21px;
+}
+
+.progress-track {
+    height: 9px;
+    overflow: hidden;
+    border-radius: 20px;
+    background: #e4e9f0;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    transition: width 0.3s ease;
+}
+
+.phishing-fill {
+    background: #c4493e;
+}
+
+.legitimate-fill {
+    background: #25824a;
+}
+
+.confidence-note {
+    margin: 10px 0 0;
+    color: #748093;
+    font-size: 12px;
+}
+
+
+/* ==========================================
+   ANALYZED URL
+   ========================================== */
+
+.analyzed-url {
+    margin-top: 22px;
+    padding: 14px 16px;
+    border-left: 3px solid #9aaec4;
+    background: #f6f8fb;
+    overflow-wrap: anywhere;
+}
+
+.analyzed-url span {
+    color: #68778a;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.analyzed-url p {
+    margin: 5px 0 0;
+    color: #34445a;
+    font-size: 13px;
+}
+
+
+/* ==========================================
+   FEATURE FINDINGS
+   ========================================== */
+
+.findings-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 15px;
+    margin: 30px 0 16px;
+}
+
+.findings-heading h3 {
+    font-size: 20px;
+}
+
+.findings-count {
+    flex-shrink: 0;
+    padding: 5px 9px;
+    border: 1px solid #e0e6ed;
+    border-radius: 6px;
+    color: #58687b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.findings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.finding-item {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid #e4e9f0;
+    border-radius: 11px;
+    background: #ffffff;
+}
+
+.finding-warning {
+    border-left: 3px solid #c4493e;
+}
+
+.finding-unclear {
+    border-left: 3px solid #c18b25;
+}
+
+.finding-normal {
+    border-left: 3px solid #25824a;
+}
+
+.finding-top {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.finding-top h4 {
+    margin: 0;
+    color: #27374c;
+    font-size: 14px;
+}
+
+.finding-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.badge-warning {
+    background: #fff0ed;
+    color: #a73527;
+}
+
+.badge-unclear {
+    background: #fff6df;
+    color: #8b6518;
+}
+
+.badge-normal {
+    background: #eaf6ee;
+    color: #237442;
+}
+
+.finding-item p {
+    margin: 11px 0 0;
+    color: #667386;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.all-findings {
+    margin-top: 18px;
+    border: 1px solid #e1e7ef;
+    border-radius: 10px;
+}
+
+.all-findings summary {
+    padding: 14px 16px;
+    color: #244e79;
+    font-size: 13px;
+    font-weight: 800;
     cursor: pointer;
 }
 
-
-/* ==========================================
-   RESULTS
-   ========================================== */
-
-.result {
-    margin-top: 25px;
-    padding: 20px;
-    border-radius: 12px;
+.all-findings summary:hover {
+    background: #f8fafc;
 }
 
-.legitimate {
-    background: #eef8f1;
-    border: 1px solid #b7dec1;
+.expanded-findings {
+    padding: 0 12px 12px;
 }
 
-.phishing {
-    background: #fff1f0;
-    border: 1px solid #efb4b0;
+.no-findings {
+    color: #6b7788;
+    font-size: 14px;
 }
 
-
-/* ==========================================
-   CONFIDENCE
-   ========================================== */
-
-.progress {
-    height: 10px;
-    background: #e5e7eb;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.progress-bar {
-    height: 100%;
-    background: #1f4e79;
-}
-
-
-/* ==========================================
-   ERROR
-   ========================================== */
-
-.error {
-    margin-top: 15px;
-    padding: 12px;
-    background: #fff1f0;
-    color: #b42318;
+.findings-disclaimer {
+    margin-top: 20px;
+    padding: 12px 14px;
     border-radius: 8px;
+    background: #f6f8fb;
+    color: #69778a;
+    font-size: 12px;
+}
+
+
+/* ==========================================
+   CHECK ANOTHER URL
+   ========================================== */
+
+.secondary-button {
+    margin-top: 22px;
+    border: 1px solid #cbd6e3;
+    background: #ffffff;
+    color: #244e79;
+}
+
+.secondary-button:hover {
+    border-color: #244e79;
+    background: #f4f8fc;
+}
+
+.secondary-button span {
+    font-size: 19px;
 }
 
 
@@ -149,30 +481,51 @@ button {
    FOOTER
    ========================================== */
 
-footer {
+.site-footer {
+    padding: 10px 0 28px;
     text-align: center;
-    margin-top: 25px;
-    color: #667085;
-    font-size: 13px;
+    color: #778396;
+    font-size: 12px;
+}
+
+.site-footer p {
+    margin: 0;
+}
+
+.site-footer span {
+    display: block;
+    margin-top: 3px;
 }
 
 
 /* ==========================================
-   MOBILE
+   RESPONSIVE LAYOUT
    ========================================== */
 
-@media (max-width: 600px) {
+@media (max-width: 620px) {
+    .site-header {
+        justify-content: flex-start;
+        padding-top: 24px;
+    }
 
-    form {
+    .url-input-row {
         flex-direction: column;
     }
 
-    button {
+    .primary-button {
         width: 100%;
     }
 
-    .card {
-        padding: 22px;
+    .findings-grid {
+        grid-template-columns: 1fr;
     }
 
+    .result-topline {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .confidence-section {
+        padding: 16px;
+    }
 }

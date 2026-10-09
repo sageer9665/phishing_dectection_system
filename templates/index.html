@@ -1,118 +1,275 @@
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Phishing Website Detection</title>
+    <title>Phishing Website Detection System</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
+    <div class="page-shell">
 
-    <main class="container">
+        <header class="site-header">
+            <div class="brand-icon" aria-hidden="true">S</div>
+            <div>
+                <h1>Phishing Website Detection</h1>
+                <p>Machine Learning-Based Website Classification</p>
+            </div>
+        </header>
 
-        <section class="header">
-            <div class="icon">🛡️</div>
+        <main class="main-content">
 
-            <h1>Phishing Website Detection System</h1>
-
-            <p>
-                Machine Learning-Based Website Classification
-            </p>
-        </section>
-
-
-        <section class="card">
-
-            <h2>Check a Website</h2>
-
-            <p class="description">
-                Enter a website URL to determine whether it is likely
-                to be legitimate or phishing.
-            </p>
-
-            <form method="POST">
-
-                <input
-                    type="text"
-                    name="url"
-                    value="{{ submitted_url }}"
-                    placeholder="https://example.com"
-                    required
-                >
-
-                <button type="submit">
-                    Analyze URL
-                </button>
-
-            </form>
-
-
-            {% if error %}
-
-                <div class="error">
-                    {{ error }}
+            {% if not result %}
+            <section class="panel input-panel">
+                <div class="section-heading">
+                    <span class="eyebrow">WEBSITE CHECK</span>
+                    <h2>Check a Website</h2>
+                    <p>Enter a website URL to examine its characteristics.</p>
                 </div>
 
+                <form method="POST" action="{{ url_for('home') }}">
+                    <label for="url">Website URL</label>
+
+                    <div class="url-input-row">
+                        <input
+                            type="text"
+                            id="url"
+                            name="url"
+                            value="{{ submitted_url or '' }}"
+                            placeholder="https://example.com"
+                            autocomplete="url"
+                            required
+                        >
+
+                        <button type="submit" class="primary-button">
+                            Analyze URL
+                        </button>
+                    </div>
+                </form>
+
+                {% if error %}
+                <div class="error-message" role="alert">
+                    {{ error }}
+                </div>
+                {% endif %}
+            </section>
             {% endif %}
 
 
             {% if result %}
+            <section class="panel result-panel">
 
-                <div class="result
+                <div class="result-topline">
+                    <span class="eyebrow">DETECTION RESULT</span>
+                    <span class="result-status
+                        {% if result == 'Phishing Website' %}
+                            status-phishing
+                        {% else %}
+                            status-legitimate
+                        {% endif %}">
+                        {% if result == 'Phishing Website' %}
+                            Phishing detected
+                        {% else %}
+                            Legitimate prediction
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="result-heading
                     {% if result == 'Phishing Website' %}
-                        phishing
+                        phishing-heading
                     {% else %}
-                        legitimate
-                    {% endif %}
-                ">
+                        legitimate-heading
+                    {% endif %}">
 
-                    <h2>{{ result }}</h2>
+                    <div class="result-symbol" aria-hidden="true">
+                        {% if result == 'Phishing Website' %}
+                            !
+                        {% else %}
+                            ✓
+                        {% endif %}
+                    </div>
 
-                    <p>
-                        Confidence:
+                    <div>
+                        <h2>{{ result }}</h2>
+                        <p>
+                            {% if result == 'Phishing Website' %}
+                                The model identified characteristics associated
+                                with phishing websites.
+                            {% else %}
+                                The model classified this URL as legitimate.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="confidence-section">
+                    <div class="confidence-label">
+                        <span>Model confidence</span>
                         <strong>{{ confidence }}%</strong>
-                    </p>
+                    </div>
 
-                    <div class="progress">
+                    <div
+                        class="progress-track"
+                        role="progressbar"
+                        aria-label="Model confidence"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        aria-valuenow="{{ confidence }}">
+
                         <div
-                            class="progress-bar"
+                            class="progress-fill
+                            {% if result == 'Phishing Website' %}
+                                phishing-fill
+                            {% else %}
+                                legitimate-fill
+                            {% endif %}"
                             style="width: {{ confidence }}%;">
                         </div>
                     </div>
 
-                    {% if result == "Phishing Website" %}
-
-                        <p class="message">
-                            Warning: this URL shows characteristics
-                            associated with phishing websites.
-                        </p>
-
-                    {% else %}
-
-                        <p class="message">
-                            Based on the machine learning prediction,
-                            this URL appears to be legitimate.
-                        </p>
-
-                    {% endif %}
-
+                    <p class="confidence-note">
+                        This percentage represents the model's probability
+                        for the predicted class. It is not a guarantee of safety.
+                    </p>
                 </div>
 
+                <div class="analyzed-url">
+                    <span>URL analyzed</span>
+                    <p>{{ submitted_url }}</p>
+                </div>
+
+                <div class="findings-heading">
+                    <div>
+                        <span class="eyebrow">EXPLANATION</span>
+                        <h3>Feature Findings</h3>
+                        <p>
+                            Characteristics extracted by the system,
+                            with their corresponding interpretations.
+                        </p>
+                    </div>
+                    <span class="findings-count">
+                        {{ findings|length }} features
+                    </span>
+                </div>
+
+                {% if findings %}
+                <div class="findings-grid">
+                    {% for finding in findings[:4] %}
+                    <article class="finding-item
+                        {% if finding.status == 'bad' %}
+                            finding-warning
+                        {% elif finding.status == 'mid' %}
+                            finding-unclear
+                        {% else %}
+                            finding-normal
+                        {% endif %}">
+
+                        <div class="finding-top">
+                            <h4>{{ finding.label }}</h4>
+
+                            <span class="finding-badge
+                                {% if finding.status == 'bad' %}
+                                    badge-warning
+                                {% elif finding.status == 'mid' %}
+                                    badge-unclear
+                                {% else %}
+                                    badge-normal
+                                {% endif %}">
+
+                                {% if finding.status == 'bad' %}
+                                    Warning
+                                {% elif finding.status == 'mid' %}
+                                    Unclear
+                                {% else %}
+                                    Normal indicator
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <p>{{ finding.text }}</p>
+                    </article>
+                    {% endfor %}
+                </div>
+
+                {% if findings|length > 4 %}
+                <details class="all-findings">
+                    <summary>
+                        View all {{ findings|length }} feature findings
+                    </summary>
+
+                    <div class="findings-grid expanded-findings">
+                        {% for finding in findings %}
+                        <article class="finding-item
+                            {% if finding.status == 'bad' %}
+                                finding-warning
+                            {% elif finding.status == 'mid' %}
+                                finding-unclear
+                            {% else %}
+                                finding-normal
+                            {% endif %}">
+
+                            <div class="finding-top">
+                                <h4>{{ finding.label }}</h4>
+
+                                <span class="finding-badge
+                                    {% if finding.status == 'bad' %}
+                                        badge-warning
+                                    {% elif finding.status == 'mid' %}
+                                        badge-unclear
+                                    {% else %}
+                                        badge-normal
+                                    {% endif %}">
+
+                                    {% if finding.status == 'bad' %}
+                                        Warning
+                                    {% elif finding.status == 'mid' %}
+                                        Unclear
+                                    {% else %}
+                                        Normal indicator
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <p>{{ finding.text }}</p>
+                        </article>
+                        {% endfor %}
+                    </div>
+                </details>
+                {% endif %}
+
+                {% else %}
+                <p class="no-findings">
+                    No feature explanations are available for this result.
+                </p>
+                {% endif %}
+
+                <div class="findings-disclaimer">
+                    Individual feature findings do not independently prove
+                    that a website is safe or malicious. The classification
+                    is produced by the trained machine learning model.
+                </div>
+
+                <a href="{{ url_for('home') }}" class="secondary-button">
+                    <span aria-hidden="true">↻</span>
+                    Check Another URL
+                </a>
+
+            </section>
             {% endif %}
 
-        </section>
+        </main>
 
-
-        <footer>
-            Machine Learning-Based Phishing Website Detection System
+        <footer class="site-footer">
+            <p>Machine Learning-Based Phishing Website Detection System</p>
+            <span>Final Year Project</span>
         </footer>
 
-    </main>
-
+    </div>
 </body>
 </html>
